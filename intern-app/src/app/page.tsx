@@ -14,7 +14,33 @@ export default function Home() {
         />
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
           <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            管理帳file.
+            export default function Home() {
+  return (
+    <main style={{ padding: '50px', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: '24px', marginBottom: '20px' }}>実習生管理名簿</h1>
+      
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+        <thead>
+          <tr style={{ borderBottom: '2px solid #000', backgroundColor: '#f4f4f4' }}>
+            <th style={{ textAlign: 'left', padding: '12px' }}>名前</th>
+            <th style={{ textAlign: 'left', padding: '12px' }}>国籍</th>
+            <th style={{ textAlign: 'left', padding: '12px' }}>入国日</th>
+            <th style={{ textAlign: 'left', padding: '12px' }}>配属先企業</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style={{ borderBottom: '1px solid #eee' }}>
+            <td style={{ padding: '12px' }}>サンプル 太郎</td>
+            <td style={{ padding: '12px' }}>ベトナム</td>
+            <td style={{ padding: '12px' }}>2026/03/13</td>
+            <td style={{ padding: '12px' }}>〇〇建設株式会社</td>
+          </tr>
+          {/* ここに行を増やしていけば、名簿がどんどん長くなります */}
+        </tbody>
+      </table>
+    </main>
+  );
+}
           </h1>
           <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
             Looking for a starting point or more instructions? Head over to{" "}
