@@ -1,117 +1,72 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase"; 
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "firebase/firestore";
+import { useState } from 'react';
 
-interface Recipe {
-  id: string;
-  title: string;
-  ingredients: string[];
-  steps: string[];
-}
+// 仮のデータ（あとでFirebaseと繋ぎます）
+const initialRecipes = [
+  { id: 1, title: 'お母さんの唐揚げ', description: '秘伝のタレに漬け込んだ、冷めても美味しい唐揚げ。', isFavorite: true, imageUrl: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?q=80&w=400' },
+  { id: 2, title: '肉じゃが（基本）', description: 'お父さんが大好きな、少し甘めの懐かしい味。', isFavorite: false, imageUrl: 'https://images.unsplash.com/photo-1630129759364-f65582c6110a?q=80&w=400' },
+  { id: 3, title: '出し巻き卵', description: 'じっくり焼いて、ふわふわに仕上げる。', isFavorite: false, imageUrl: 'https://images.unsplash.com/photo-1614352226227-377726af60f0?q=80&w=400' },
+];
 
-export default function Home() {
-  const [title, setTitle] = useState("");
-  const [ingredients, setIngredients] = useState([""]);
-  const [steps, setSteps] = useState([""]);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showIngredients, setShowIngredients] = useState<string[] | null>(null);
-
-  useEffect(() => {
-    const q = query(collection(db, "recipes"), orderBy("createdAt", "desc"));
-    return onSnapshot(q, (snapshot) => {
-      setRecipes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Recipe[]);
-    });
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title) return alert("料理名を入れてね！");
-    setLoading(true);
-
-    try {
-      await addDoc(collection(db, "recipes"), {
-        title,
-        ingredients: ingredients.filter(i => i !== ""),
-        steps: steps.filter(s => s !== ""),
-        createdAt: serverTimestamp(),
-      });
-      setTitle(""); setIngredients([""]); setSteps([""]);
-    } catch (e) {
-      alert("保存に失敗しました。Firestoreのルールを確認してね！");
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function Page() {
+  const [recipes] = useState(initialRecipes);
 
   return (
-    <main className="max-w-md mx-auto p-4 bg-orange-50 min-h-screen pb-24 text-black">
-      <h1 className="text-xl font-bold text-orange-600 mb-4 text-center">🍳 お母さんと私のレシピ帳</h1>
-
-      <form onSubmit={handleSubmit} className="bg-white p-4 rounded-xl shadow-sm space-y-4 mb-8 border border-orange-100">
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="料理名（例：ハンバーグ）" className="w-full p-2 border-b-2 border-orange-100 outline-none text-lg font-bold" />
+    <div>
+      {/* 上部のタイトルエリア */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-4xl font-extrabold text-stone-900 tracking-tighter">
+            みんなのレシピ
+          </h2>
+          <p className="text-stone-600 mt-2">
+            今日のごはんは何にする？お母さんの味を再現しよう。
+          </p>
+        </div>
         
-        <div>
-          <p className="font-bold text-sm mb-2 text-orange-500">材料</p>
-          {ingredients.map((ing, i) => (
-            <input key={i} value={ing} onChange={(e) => {
-              const n = [...ingredients]; n[i] = e.target.value; setIngredients(n);
-            }} placeholder={`材料 ${i+1}`} className="w-full p-1 text-sm border-b mb-1 outline-none" />
-          ))}
-          <button type="button" onClick={() => setIngredients([...ingredients, ""])} className="text-xs text-blue-500 font-bold mt-1">+ 材料を追加</button>
-        </div>
-
-        <div>
-          <p className="font-bold text-sm mb-2 text-orange-500">作り方</p>
-          {steps.map((step, i) => (
-            <textarea key={i} value={step} onChange={(e) => {
-              const n = [...steps]; n[i] = e.target.value; setSteps(n);
-            }} placeholder={`工程 ${i+1}`} className="w-full p-1 text-sm border-b mb-1 outline-none resize-none" />
-          ))}
-          <button type="button" onClick={() => setSteps([...steps, ""])} className="text-xs text-blue-500 font-bold mt-1">+ 工程を追加</button>
-        </div>
-
-        <button disabled={loading} className="w-full py-3 bg-orange-500 text-white rounded-lg font-bold shadow-md active:bg-orange-600 transition">
-          {loading ? "保存中..." : "レシピを保存する"}
+        {/* レシピ追加ボタン */}
+        <button className="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-3 rounded-full shadow-md flex items-center gap-2 transition-all">
+          <span className="text-lg">＋</span>
+          新しいレシピを追加
         </button>
-      </form>
+      </div>
 
-      <div className="space-y-6">
+      {/* レシピのカードグリッド */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {recipes.map((recipe) => (
-          <div key={recipe.id} className="bg-white rounded-2xl p-4 shadow-sm border border-orange-100">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">{recipe.title}</h2>
-              <button onClick={() => setShowIngredients(recipe.ingredients)} className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-bold">材料を見る</button>
+          <div key={recipe.id} className="bg-white rounded-3xl shadow-sm border border-stone-100 overflow-hidden hover:shadow-lg transition-shadow group">
+            {/* レシピ画像 */}
+            <div className="aspect-[4/3] overflow-hidden">
+              <img 
+                src={recipe.imageUrl} 
+                alt={recipe.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
             </div>
-            <div className="space-y-3">
-              {recipe.steps.map((step, i) => (
-                <div key={i} className="flex gap-3 text-sm">
-                  <span className="bg-orange-400 text-white w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-[10px]">{i + 1}</span>
-                  <p className="text-gray-700">{step}</p>
-                </div>
-              ))}
+            
+            {/* レシピ情報 */}
+            <div className="p-6">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <h3 className="text-2xl font-bold text-stone-800 leading-tight">
+                  {recipe.title}
+                </h3>
+                {recipe.isFavorite && (
+                  <span className="text-amber-500 text-2xl" title="お気に入り">★</span>
+                )}
+              </div>
+              <p className="text-stone-600 text-sm mb-5 line-clamp-2">
+                {recipe.description}
+              </p>
+              
+              {/* レシピを見るボタン */}
+              <button className="w-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium px-4 py-3 rounded-xl transition-colors text-sm">
+                レシピを見る
+              </button>
             </div>
           </div>
         ))}
       </div>
-
-      {showIngredients && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-3xl p-6 shadow-2xl max-h-[70vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-xl text-orange-600">材料リスト</h3>
-              <button onClick={() => setShowIngredients(null)} className="text-gray-400 text-2xl">✕</button>
-            </div>
-            <ul className="space-y-3">
-              {showIngredients.map((ing, i) => (
-                <li key={i} className="border-b border-gray-100 pb-2 text-gray-800">・{ing}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-    </main>
+    </div>
   );
 }
